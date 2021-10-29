@@ -76,6 +76,9 @@ public class ChaChaController {
     private Button saveEncryptFileButton;
 
     @FXML
+    private Button saveDecryptFileButton;
+
+    @FXML
     private Button saveKeyButton;
 
     @FXML
@@ -84,9 +87,11 @@ public class ChaChaController {
     private ChaCha20 chaCha20;
     private byte[] bytesOfFileToEncrypt;
     private byte[] bytesToDecrypt;
+    private byte[] decryptedBytes;
 
     public void initialize() throws Exception {
         this.saveEncryptFileButton.setDisable(true);
+        this.saveDecryptFileButton.setDisable(true);
         this.encryptButton.setDisable(true);
         this.decryptButton.setDisable(true);
         this.encryptedTextInput.setEditable(false);
@@ -108,7 +113,9 @@ public class ChaChaController {
         }
 
         byte[] decryptedData = this.chaCha20.decrypt(this.bytesToDecrypt, this.bytesToDecrypt.length);
+        this.decryptedBytes = decryptedData;
         this.decryptedTextInput.setText(new String(decryptedData));
+        this.saveDecryptFileButton.setDisable(false);
     }
 
     @FXML
@@ -253,6 +260,27 @@ public class ChaChaController {
         try {
             this.saveFile(this.bytesToDecrypt, selectedDirectory.getAbsolutePath(), "chacha20-encrypted-file-" + new Date().getTime());
             SHOW_ALERT("Encrypted file was successfully saved.", Alert.AlertType.INFORMATION);
+        } catch (Exception e) {
+            SHOW_ALERT("Oops. Something went wrong.", Alert.AlertType.WARNING);
+        }
+    }
+
+    @FXML
+    void handleSaveDecryptFile(ActionEvent event) {
+        if (this.decryptedBytes == null || this.decryptedBytes.length <= 0) {
+            return;
+        }
+
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File selectedDirectory = directoryChooser.showDialog(((Node) event.getTarget()).getScene().getWindow());
+
+        if (selectedDirectory == null) {
+            return;
+        }
+
+        try {
+            this.saveFile(this.decryptedBytes, selectedDirectory.getAbsolutePath(), "chacha20-decrypted-file-" + new Date().getTime());
+            SHOW_ALERT("Decrypted file was successfully saved.", Alert.AlertType.INFORMATION);
         } catch (Exception e) {
             SHOW_ALERT("Oops. Something went wrong.", Alert.AlertType.WARNING);
         }
