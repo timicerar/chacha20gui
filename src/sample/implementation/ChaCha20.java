@@ -113,33 +113,30 @@ public class ChaCha20 {
         byte[] returnBytes = new byte[src.length];
 
         int[] chaChaBlock;
-        int[] output = new int[64];
-        int destPos = 0, srcPos = 0;
+        int position = 0;
 
         while (length > 0) {
+            // Create ChaCha block
             chaChaBlock = this.chaChaBlock(this.initialState);
-
-            for (int i = 0; i < 16; i++) {
-                U32TO8_LE(output, 4 * i, chaChaBlock[i]);
-            }
 
             this.initialState[12] += 1;
 
-            if (length <= 64) {
+            if (length <= 16) {
                 for (int i = 0; i < length; ++i) {
-                    returnBytes[i + destPos] = (byte) (src[i + srcPos] ^ output[i]);
+                    // XOR (cast to bytes)
+                    returnBytes[i + position] = (byte) (src[i + position] ^ chaChaBlock[i]);
                 }
 
                 return returnBytes;
             }
 
-            for (int i = 0; i < 64; ++i) {
-                returnBytes[i + destPos] = (byte) (src[i + srcPos] ^ output[i]);
+            for (int i = 0; i < 16; ++i) {
+                // XOR (cast to bytes)
+                returnBytes[i + position] = (byte) (src[i + position] ^ chaChaBlock[i]);
             }
 
-            length -= 64;
-            srcPos += 64;
-            destPos += 64;
+            length -= 16;
+            position += 16;
         }
 
         return returnBytes;
@@ -192,18 +189,5 @@ public class ChaCha20 {
 
     private static int U8TO32_LE(byte[] bytes, int i) {
         return (bytes[i] & 0xff) | ((bytes[i + 1] & 0xff) << 8) | ((bytes[i + 2] & 0xff) << 16) | ((bytes[i + 3] & 0xff) << 24);
-    }
-
-    private static void U32TO8_LE(int[] x, int i, int u) {
-        x[i] = u;
-
-        u >>>= 8;
-        x[i + 1] = u;
-
-        u >>>= 8;
-        x[i + 2] = u;
-
-        u >>>= 8;
-        x[i + 3] = u;
     }
 }
